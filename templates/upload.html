@@ -1,0 +1,106 @@
+{% extends "base.html" %} {% block title %}Upload Data - Sistem Analisis ML{%
+endblock %} {% block content %}
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+          <i class="fas fa-upload"></i> Upload Data Penjualan
+        </h4>
+      </div>
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+          <div class="mb-4">
+            <label for="file" class="form-label h5"
+              >Pilih File Data Penjualan</label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="file"
+              id="file"
+              name="file"
+              accept=".pdf,.csv"
+              required
+            />
+            <div class="form-text">
+              Upload file PDF laporan penjualan atau CSV berisi data produk.
+              Sistem akan otomatis menganalisis data dan menampilkan hasil
+              clustering.
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-rocket"></i> Upload & Analisis Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-file-pdf"></i> Format PDF</h5>
+          </div>
+          <div class="card-body">
+            <p>
+              File PDF laporan penjualan dari sistem point of sale atau
+              accounting software.
+            </p>
+            <ul>
+              <li>Laporan penjualan produk</li>
+              <li>Data transaksi harian/bulanan</li>
+              <li>Laporan dengan format tabel</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-file-csv"></i> Format CSV</h5>
+          </div>
+          <div class="card-body">
+            <p>File CSV dengan kolom sebagai berikut:</p>
+            <pre>
+produk,jumlah_terjual,penjualan_rp,kategori
+Nama Produk,100,5000000,Kategori</pre
+            >
+            <p class="mb-0">Kolom <strong>tanggal</strong> opsional.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="card mt-4">
+      <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="fas fa-star"></i> Yang Akan Dianalisis</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 text-center">
+            <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
+            <h6>Analisis Penjualan</h6>
+            <small>Statistik lengkap dan trend penjualan</small>
+          </div>
+          <div class="col-md-4 text-center">
+            <i class="fas fa-project-diagram fa-2x text-success mb-2"></i>
+            <h6>Segmentasi Produk</h6>
+            <small>Clustering dengan machine learning</small>
+          </div>
+          <div class="col-md-4 text-center">
+            <i class="fas fa-lightbulb fa-2x text-info mb-2"></i>
+            <h6>Rekomendasi Bisnis</h6>
+            <small>Insight dan strategi penjualan</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

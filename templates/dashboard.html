@@ -1,0 +1,382 @@
+{% extends "base.html" %} {% block title %}Dashboard Analisis - Sistem ML{%
+endblock %} {% block content %}
+<div class="row">
+  <div class="col-12">
+    <!-- Dataset Selector -->
+    {% if data_history|length > 1 %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fas fa-database"></i> Pilih Dataset</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="btn-group" role="group">
+              {% for dataset in data_history %}
+              <a
+                href="{{ url_for('select_dataset', dataset_index=loop.index0) }}"
+                class="btn btn-{% if loop.index0 == current_dataset_index %}primary{% else %}outline-primary{% endif %}"
+              >
+                {{ dataset.filename }} {% if loop.index0 ==
+                current_dataset_index %}
+                <span class="badge bg-light text-dark">Aktif</span>
+                {% endif %}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="{{ url_for('combined_data') }}" class="btn btn-success">
+              <i class="fas fa-layer-group"></i> Gabungkan Semua Data
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Header Dashboard -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-chart-line"></i> Dashboard Analisis Penjualan</h2>
+      <div>
+        <a href="{{ url_for('export_results') }}" class="btn btn-success">
+          <i class="fas fa-download"></i> Export Hasil
+        </a>
+
+        {% if data_history|length > 1 %}
+        <form
+          method="POST"
+          action="{{ url_for('clear_current_data') }}"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="fas fa-times"></i> Hapus Data Ini
+          </button>
+        </form>
+        {% endif %}
+
+        <form
+          method="POST"
+          action="{{ url_for('clear_all_data') }}"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Hapus Semua
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Current Dataset Info -->
+    {% if current_dataset_index >= 0 %}
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle"></i>
+      Dataset aktif:
+      <strong>{{ data_history[current_dataset_index].filename }}</strong> |
+      Upload: {{
+      data_history[current_dataset_index].upload_time.strftime('%d/%m/%Y %H:%M')
+      }} | Total dataset: {{ data_history|length }}
+    </div>
+    {% endif %}
+
+    <!-- Status Analisis -->
+    {% if not analysis_results or not analysis_results.success %}
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      Analisis data belum berhasil. Silakan upload data kembali. {% if
+      analysis_results and analysis_results.error %}
+      <br /><small>Error: {{ analysis_results.error }}</small>
+      {% endif %}
+    </div>
+    {% endif %} {% if clustering_results and not clustering_results.success %}
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      Clustering tidak berhasil: {{ clustering_results.error }}
+    </div>
+    {% endif %}
+
+    <!-- Summary Cards -->
+    {% if analysis_results and analysis_results.success %}
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card text-white bg-primary">
+          <div class="card-body">
+            <h5>Total Produk</h5>
+            <h3>{{ total_products }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-success">
+          <div class="card-body">
+            <h5>Total Penjualan</h5>
+            <h3>
+              Rp {{ "{:,.0f}".format(analysis_results.basic_stats.total_sales)
+              }}
+            </h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-info">
+          <div class="card-body">
+            <h5>Rata-rata Penjualan</h5>
+            <h3>
+              Rp {{
+              "{:,.0f}".format(analysis_results.basic_stats.avg_sales_per_product)
+              }}
+            </h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-warning">
+          <div class="card-body">
+            <h5>Segment Produk</h5>
+            <h3>
+              {{ clustering_results.optimal_clusters if clustering_results and
+              clustering_results.success else 'N/A' }}
+            </h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Analisis Penjualan -->
+    {% if analysis_results and analysis_results.success %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h4><i class="fas fa-chart-bar"></i> Analisis Penjualan</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              {% if analysis_results.visualizations.top_products %}
+              <div class="col-md-6">
+                <h5>10 Produk Terlaris</h5>
+                <img
+                  src="{{ analysis_results.visualizations.top_products }}"
+                  class="img-fluid"
+                  alt="Top Products"
+                />
+              </div>
+              {% endif %} {% if
+              analysis_results.visualizations.category_distribution %}
+              <div class="col-md-6">
+                <h5>Distribusi Kategori</h5>
+                <img
+                  src="{{ analysis_results.visualizations.category_distribution }}"
+                  class="img-fluid"
+                  alt="Category Distribution"
+                />
+              </div>
+              {% endif %}
+            </div>
+
+            {% if analysis_results.top_products %}
+            <div class="row mt-4">
+              <div class="col-12">
+                <h5>10 Produk Terlaris</h5>
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Nama Produk</th>
+                        <th>Penjualan (Rp)</th>
+                        <th>Jumlah Terjual</th>
+                        <th>Kategori</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for product in analysis_results.top_products %}
+                      <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ product.produk }}</td>
+                        <td class="text-success">
+                          Rp {{ "{:,.0f}".format(product.penjualan_rp) }}
+                        </td>
+                        <td>
+                          {{ "{:,.0f}".format(product.jumlah_terjual) if
+                          product.jumlah_terjual else '-' }}
+                        </td>
+                        <td>
+                          <span class="badge bg-secondary"
+                            >{{ product.kategori }}</span
+                          >
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Clustering Results -->
+    {% if clustering_results and clustering_results.success %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-project-diagram"></i> Segmentasi Produk
+              (Clustering)
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              {% if clustering_results.visualizations.cluster_distribution %}
+              <div class="col-md-6">
+                <h5>Distribusi Segment</h5>
+                <img
+                  src="{{ clustering_results.visualizations.cluster_distribution }}"
+                  class="img-fluid"
+                  alt="Cluster Distribution"
+                />
+              </div>
+              {% endif %} {% if
+              clustering_results.visualizations.sales_by_cluster %}
+              <div class="col-md-6">
+                <h5>Penjualan per Segment</h5>
+                <img
+                  src="{{ clustering_results.visualizations.sales_by_cluster }}"
+                  class="img-fluid"
+                  alt="Sales by Cluster"
+                />
+              </div>
+              {% endif %}
+            </div>
+
+            {% if clustering_results.customer_segments %}
+            <div class="row mt-4">
+              <div class="col-12">
+                <h5>Detail Segment Produk</h5>
+                <div class="row">
+                  {% for segment_id, segment_info in
+                  clustering_results.customer_segments.items() %}
+                  <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                      <div class="card-header bg-light">
+                        <strong>{{ segment_info.segment_name }}</strong>
+                        (Segment {{ segment_id }})
+                      </div>
+                      <div class="card-body">
+                        <p>
+                          <strong>Jumlah Produk:</strong> {{
+                          segment_info.segment_size }}
+                        </p>
+                        <p>
+                          <strong>Total Penjualan:</strong> Rp {{
+                          "{:,.0f}".format(segment_info.total_sales) }}
+                        </p>
+                        <p>
+                          <strong>Rata-rata Penjualan:</strong> Rp {{
+                          "{:,.0f}".format(segment_info.avg_sales_per_product)
+                          }}
+                        </p>
+                        <p>
+                          <strong>Total Terjual:</strong> {{
+                          "{:,.0f}".format(segment_info.total_quantity) }}
+                        </p>
+
+                        {% if segment_info.top_categories %}
+                        <p><strong>Kategori Teratas:</strong></p>
+                        <ul class="small">
+                          {% for category, count in
+                          segment_info.top_categories.items() %}
+                          <li>{{ category }}: {{ count }} produk</li>
+                          {% endfor %}
+                        </ul>
+                        {% endif %} {% if segment_info.recommendations %}
+                        <h6>Rekomendasi:</h6>
+                        <ul class="small">
+                          {% for rec in segment_info.recommendations %}
+                          <li>{{ rec }}</li>
+                          {% endfor %}
+                        </ul>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Data Table -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-table"></i> Data Produk ({{ total_products }}
+              produk)
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Produk</th>
+                    <th>Jumlah Terjual</th>
+                    <th>Total Penjualan</th>
+                    <th>Kategori</th>
+                    {% if clustering_results and clustering_results.success %}
+                    <th>Segment</th>
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for product in data.to_dict('records') %}
+                  <tr>
+                    <td>{{ product.produk }}</td>
+                    <td>
+                      {{ "{:,.0f}".format(product.jumlah_terjual) if
+                      product.jumlah_terjual else '-' }}
+                    </td>
+                    <td class="text-success">
+                      Rp {{ "{:,.0f}".format(product.penjualan_rp) if
+                      product.penjualan_rp else '-' }}
+                    </td>
+                    <td>
+                      <span class="badge bg-secondary"
+                        >{{ product.kategori }}</span
+                      >
+                    </td>
+                    {% if clustering_results and clustering_results.success %}
+                    <td>
+                      <span class="badge bg-primary">
+                        Segment {{
+                        clustering_results.clustering_results.labels[loop.index0]
+                        }}
+                      </span>
+                    </td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
