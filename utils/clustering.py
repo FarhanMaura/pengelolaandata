@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 import matplotlib
-matplotlib.use('Agg')  # non-GUI backend (biar jalan di server)
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -13,6 +13,16 @@ import base64
 class CustomerClustering:
     def __init__(self):
         self.scaler = StandardScaler()
+        # Warna dari CSS variables - orange & blue mix
+        self.colors = {
+            'primary_orange': '#F9B65A',
+            'secondary_orange': '#FBC97A', 
+            'accent_blue': '#2AB5F6',
+            'dark_blue': '#1E88E5',
+            'light_orange': '#FFF8F0',
+            'light_blue': '#E3F2FD',
+            'gradient_colors': ['#F9B65A', '#FBC97A', '#2AB5F6', '#1E88E5', '#81D4FA', '#FFD54F']
+        }
     
     def perform_analysis(self, df):
         """Lakukan analisis clustering komprehensif"""
@@ -207,8 +217,8 @@ class CustomerClustering:
         plt.figure(figsize=(10, 8))
         counts = pd.Series(labels).value_counts().sort_index()
         
-        # Warna feminine untuk pie chart
-        colors = ['#ff6b9d', '#ff8fab', '#ffa7c4', '#ffb3d1', '#ffc2dd', '#9d4edd']
+        # Gunakan warna dari CSS palette
+        colors = self.colors['gradient_colors']
         
         # Buat pie chart dengan styling yang lebih baik
         wedges, texts, autotexts = plt.pie(
@@ -228,10 +238,10 @@ class CustomerClustering:
             autotext.set_fontsize(10)
         
         plt.title('Distribusi Segment Produk\n', 
-                 fontsize=14, fontweight='bold', color='#d94a7e', pad=20)
+                 fontsize=14, fontweight='bold', color=self.colors['dark_blue'], pad=20)
         
-        # Background color
-        plt.gca().set_facecolor('#fff5f7')
+        # Background color sesuai CSS
+        plt.gca().set_facecolor(self.colors['light_orange'])
         plt.tight_layout()
         
         return self._plot_to_base64()
@@ -245,8 +255,8 @@ class CustomerClustering:
         # Group by cluster dan hitung total penjualan
         sales_by_cluster = dfc.groupby('cluster')['penjualan_rp'].sum() / 1_000_000  # Convert ke juta
         
-        # Warna feminine gradient untuk bar chart
-        colors = ['#ff6b9d', '#ff8fab', '#ffa7c4', '#ffb3d1', '#ffc2dd', '#9d4edd']
+        # Gunakan warna dari CSS palette
+        colors = self.colors['gradient_colors']
         
         # Buat bar chart
         bars = plt.bar(
@@ -259,8 +269,8 @@ class CustomerClustering:
         )
         
         plt.title('Total Penjualan per Segment\n(Juta Rupiah)', 
-                 fontsize=14, fontweight='bold', color='#d94a7e', pad=20)
-        plt.ylabel('Penjualan (Juta Rp)', fontsize=12, color='#ff6b9d')
+                 fontsize=14, fontweight='bold', color=self.colors['dark_blue'], pad=20)
+        plt.ylabel('Penjualan (Juta Rp)', fontsize=12, color=self.colors['primary_orange'])
         
         # Rotasi label x-axis
         plt.xticks(rotation=45, ha='right')
@@ -271,20 +281,20 @@ class CustomerClustering:
             plt.text(bar.get_x() + bar.get_width()/2., height + 0.1,
                     f'{height:.1f}M', 
                     ha='center', va='bottom', 
-                    fontsize=10, fontweight='bold', color='#d94a7e')
+                    fontsize=10, fontweight='bold', color=self.colors['dark_blue'])
         
         # Style improvements
-        plt.grid(axis='y', alpha=0.3, color='#ff9ec0')
-        plt.gca().set_facecolor('#fff5f7')
+        plt.grid(axis='y', alpha=0.3, color=self.colors['secondary_orange'])
+        plt.gca().set_facecolor(self.colors['light_orange'])
         plt.tight_layout()
         
         return self._plot_to_base64()
 
     def _plot_to_base64(self):
-        """Convert plot to base64 dengan background feminine"""
+        """Convert plot to base64 dengan background sesuai CSS"""
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=120, bbox_inches='tight', 
-                   facecolor='#fff5f7', edgecolor='none')
+                   facecolor=self.colors['light_orange'], edgecolor='none')
         buf.seek(0)
         img_base64 = base64.b64encode(buf.getvalue()).decode()
         plt.close()

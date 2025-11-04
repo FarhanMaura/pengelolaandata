@@ -520,7 +520,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Handle page specific animations
   initPageSpecificAnimations();
 
-  console.log("🌸 Sales ML Analyzer - Animations Initialized");
+  console.log("🌸 Pengelolaan Data Transaksi - Animations Initialized");
 });
 
 // Analysis progress untuk form upload
