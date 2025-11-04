@@ -1,25 +1,28 @@
-{% extends "base.html" %} {% block title %}Dashboard Analisis - Sistem ML{%
-endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Dashboard Analisis - Sales ML
+Analyzer{% endblock %} {% block content %}
 <div class="row">
   <div class="col-12">
     <!-- Dataset Selector -->
     {% if data_history|length > 1 %}
     <div class="card mb-4">
       <div class="card-header">
-        <h5><i class="fas fa-database"></i> Pilih Dataset</h5>
+        <h5><i class="fas fa-database me-2"></i> Pilih Dataset</h5>
       </div>
       <div class="card-body">
         <div class="row">
           <div class="col-md-8">
-            <div class="btn-group" role="group">
+            <div class="d-flex flex-wrap gap-2" role="group">
               {% for dataset in data_history %}
               <a
                 href="{{ url_for('select_dataset', dataset_index=loop.index0) }}"
-                class="btn btn-{% if loop.index0 == current_dataset_index %}primary{% else %}outline-primary{% endif %}"
+                class="dataset-btn btn btn-{% if loop.index0 == current_dataset_index %}primary active{% else %}outline-primary{% endif %}"
               >
+                <i
+                  class="fas fa-{% if loop.index0 == current_dataset_index %}check-circle{% else %}database{% endif %} me-2"
+                ></i>
                 {{ dataset.filename }} {% if loop.index0 ==
                 current_dataset_index %}
-                <span class="badge bg-light text-dark">Aktif</span>
+                <span class="badge bg-light text-dark ms-2">Aktif</span>
                 {% endif %}
               </a>
               {% endfor %}
@@ -27,7 +30,7 @@ endblock %} {% block content %}
           </div>
           <div class="col-md-4 text-end">
             <a href="{{ url_for('combined_data') }}" class="btn btn-success">
-              <i class="fas fa-layer-group"></i> Gabungkan Semua Data
+              <i class="fas fa-layer-group me-2"></i> Gabungkan Semua Data
             </a>
           </div>
         </div>
@@ -37,10 +40,12 @@ endblock %} {% block content %}
 
     <!-- Header Dashboard -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2><i class="fas fa-chart-line"></i> Dashboard Analisis Penjualan</h2>
-      <div>
+      <h2>
+        <i class="fas fa-chart-line me-2"></i> Dashboard Analisis Penjualan
+      </h2>
+      <div class="d-flex gap-2">
         <a href="{{ url_for('export_results') }}" class="btn btn-success">
-          <i class="fas fa-download"></i> Export Hasil
+          <i class="fas fa-download me-2"></i> Export Hasil
         </a>
 
         {% if data_history|length > 1 %}
@@ -50,7 +55,7 @@ endblock %} {% block content %}
           class="d-inline"
         >
           <button type="submit" class="btn btn-outline-danger">
-            <i class="fas fa-times"></i> Hapus Data Ini
+            <i class="fas fa-times me-2"></i> Hapus Data Ini
           </button>
         </form>
         {% endif %}
@@ -61,7 +66,7 @@ endblock %} {% block content %}
           class="d-inline"
         >
           <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash"></i> Hapus Semua
+            <i class="fas fa-trash me-2"></i> Hapus Semua
           </button>
         </form>
       </div>
@@ -70,19 +75,20 @@ endblock %} {% block content %}
     <!-- Current Dataset Info -->
     {% if current_dataset_index >= 0 %}
     <div class="alert alert-info">
-      <i class="fas fa-info-circle"></i>
+      <i class="fas fa-info-circle me-2"></i>
       Dataset aktif:
       <strong>{{ data_history[current_dataset_index].filename }}</strong> |
       Upload: {{
       data_history[current_dataset_index].upload_time.strftime('%d/%m/%Y %H:%M')
-      }} | Total dataset: {{ data_history|length }}
+      }} | Total dataset:
+      <span class="badge bg-primary">{{ data_history|length }}</span>
     </div>
     {% endif %}
 
     <!-- Status Analisis -->
     {% if not analysis_results or not analysis_results.success %}
     <div class="alert alert-warning">
-      <i class="fas fa-exclamation-triangle"></i>
+      <i class="fas fa-exclamation-triangle me-2"></i>
       Analisis data belum berhasil. Silakan upload data kembali. {% if
       analysis_results and analysis_results.error %}
       <br /><small>Error: {{ analysis_results.error }}</small>
@@ -90,7 +96,7 @@ endblock %} {% block content %}
     </div>
     {% endif %} {% if clustering_results and not clustering_results.success %}
     <div class="alert alert-warning">
-      <i class="fas fa-exclamation-triangle"></i>
+      <i class="fas fa-exclamation-triangle me-2"></i>
       Clustering tidak berhasil: {{ clustering_results.error }}
     </div>
     {% endif %}
@@ -99,45 +105,45 @@ endblock %} {% block content %}
     {% if analysis_results and analysis_results.success %}
     <div class="row mb-4">
       <div class="col-md-3">
-        <div class="card text-white bg-primary">
-          <div class="card-body">
-            <h5>Total Produk</h5>
-            <h3>{{ total_products }}</h3>
-          </div>
+        <div class="summary-card">
+          <h5><i class="fas fa-box me-2"></i> Total Produk</h5>
+          <h3 class="counter" data-target="{{ total_products }}">0</h3>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-white bg-success">
-          <div class="card-body">
-            <h5>Total Penjualan</h5>
-            <h3>
-              Rp {{ "{:,.0f}".format(analysis_results.basic_stats.total_sales)
-              }}
-            </h3>
-          </div>
+        <div
+          class="summary-card"
+          style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%)"
+        >
+          <h5><i class="fas fa-chart-line me-2"></i> Total Penjualan</h5>
+          <h3>
+            Rp {{ "{:,.0f}".format(analysis_results.basic_stats.total_sales) }}
+          </h3>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-white bg-info">
-          <div class="card-body">
-            <h5>Rata-rata Penjualan</h5>
-            <h3>
-              Rp {{
-              "{:,.0f}".format(analysis_results.basic_stats.avg_sales_per_product)
-              }}
-            </h3>
-          </div>
+        <div
+          class="summary-card"
+          style="background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%)"
+        >
+          <h5><i class="fas fa-calculator me-2"></i> Rata-rata Penjualan</h5>
+          <h3>
+            Rp {{
+            "{:,.0f}".format(analysis_results.basic_stats.avg_sales_per_product)
+            }}
+          </h3>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-white bg-warning">
-          <div class="card-body">
-            <h5>Segment Produk</h5>
-            <h3>
-              {{ clustering_results.optimal_clusters if clustering_results and
-              clustering_results.success else 'N/A' }}
-            </h3>
-          </div>
+        <div
+          class="summary-card"
+          style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)"
+        >
+          <h5><i class="fas fa-project-diagram me-2"></i> Segment Produk</h5>
+          <h3>
+            {{ clustering_results.optimal_clusters if clustering_results and
+            clustering_results.success else 'N/A' }}
+          </h3>
         </div>
       </div>
     </div>
@@ -149,28 +155,38 @@ endblock %} {% block content %}
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h4><i class="fas fa-chart-bar"></i> Analisis Penjualan</h4>
+            <h4><i class="fas fa-chart-bar me-2"></i> Analisis Penjualan</h4>
           </div>
           <div class="card-body">
             <div class="row">
               {% if analysis_results.visualizations.top_products %}
-              <div class="col-md-6">
-                <h5>10 Produk Terlaris</h5>
-                <img
-                  src="{{ analysis_results.visualizations.top_products }}"
-                  class="img-fluid"
-                  alt="Top Products"
-                />
+              <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                  <h5>
+                    <i class="fas fa-trophy me-2 text-warning"></i> 10 Produk
+                    Terlaris
+                  </h5>
+                  <img
+                    src="{{ analysis_results.visualizations.top_products }}"
+                    class="chart-img"
+                    alt="Top Products Chart"
+                  />
+                </div>
               </div>
               {% endif %} {% if
               analysis_results.visualizations.category_distribution %}
-              <div class="col-md-6">
-                <h5>Distribusi Kategori</h5>
-                <img
-                  src="{{ analysis_results.visualizations.category_distribution }}"
-                  class="img-fluid"
-                  alt="Category Distribution"
-                />
+              <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                  <h5>
+                    <i class="fas fa-chart-pie me-2 text-info"></i> Distribusi
+                    Kategori
+                  </h5>
+                  <img
+                    src="{{ analysis_results.visualizations.category_distribution }}"
+                    class="chart-img"
+                    alt="Category Distribution Chart"
+                  />
+                </div>
               </div>
               {% endif %}
             </div>
@@ -178,7 +194,9 @@ endblock %} {% block content %}
             {% if analysis_results.top_products %}
             <div class="row mt-4">
               <div class="col-12">
-                <h5>10 Produk Terlaris</h5>
+                <h5>
+                  <i class="fas fa-list-ol me-2"></i> Detail 10 Produk Terlaris
+                </h5>
                 <div class="table-responsive">
                   <table class="table table-striped">
                     <thead>
@@ -194,8 +212,8 @@ endblock %} {% block content %}
                       {% for product in analysis_results.top_products %}
                       <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ product.produk }}</td>
-                        <td class="text-success">
+                        <td><strong>{{ product.produk }}</strong></td>
+                        <td class="text-success fw-bold">
                           Rp {{ "{:,.0f}".format(product.penjualan_rp) }}
                         </td>
                         <td>
@@ -228,30 +246,40 @@ endblock %} {% block content %}
         <div class="card">
           <div class="card-header">
             <h4>
-              <i class="fas fa-project-diagram"></i> Segmentasi Produk
+              <i class="fas fa-project-diagram me-2"></i> Segmentasi Produk
               (Clustering)
             </h4>
           </div>
           <div class="card-body">
             <div class="row">
               {% if clustering_results.visualizations.cluster_distribution %}
-              <div class="col-md-6">
-                <h5>Distribusi Segment</h5>
-                <img
-                  src="{{ clustering_results.visualizations.cluster_distribution }}"
-                  class="img-fluid"
-                  alt="Cluster Distribution"
-                />
+              <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                  <h5>
+                    <i class="fas fa-chart-bar me-2 text-success"></i>
+                    Distribusi Segment
+                  </h5>
+                  <img
+                    src="{{ clustering_results.visualizations.cluster_distribution }}"
+                    class="chart-img"
+                    alt="Cluster Distribution Chart"
+                  />
+                </div>
               </div>
               {% endif %} {% if
               clustering_results.visualizations.sales_by_cluster %}
-              <div class="col-md-6">
-                <h5>Penjualan per Segment</h5>
-                <img
-                  src="{{ clustering_results.visualizations.sales_by_cluster }}"
-                  class="img-fluid"
-                  alt="Sales by Cluster"
-                />
+              <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                  <h5>
+                    <i class="fas fa-money-bill-wave me-2 text-primary"></i>
+                    Penjualan per Segment
+                  </h5>
+                  <img
+                    src="{{ clustering_results.visualizations.sales_by_cluster }}"
+                    class="chart-img"
+                    alt="Sales by Cluster Chart"
+                  />
+                </div>
               </div>
               {% endif %}
             </div>
@@ -259,50 +287,75 @@ endblock %} {% block content %}
             {% if clustering_results.customer_segments %}
             <div class="row mt-4">
               <div class="col-12">
-                <h5>Detail Segment Produk</h5>
+                <h5>
+                  <i class="fas fa-info-circle me-2"></i> Detail Segment Produk
+                </h5>
                 <div class="row">
                   {% for segment_id, segment_info in
                   clustering_results.customer_segments.items() %}
                   <div class="col-md-6 mb-3">
-                    <div class="card h-100">
+                    <div class="card h-100 cluster-{{ segment_id % 5 }}">
                       <div class="card-header bg-light">
-                        <strong>{{ segment_info.segment_name }}</strong>
-                        (Segment {{ segment_id }})
+                        <strong
+                          ><i class="fas fa-users me-2"></i>{{
+                          segment_info.segment_name }}</strong
+                        >
+                        <span class="badge bg-primary float-end"
+                          >Segment {{ segment_id }}</span
+                        >
                       </div>
                       <div class="card-body">
-                        <p>
+                        <p class="mb-2">
+                          <i class="fas fa-box me-2 text-primary"></i>
                           <strong>Jumlah Produk:</strong> {{
                           segment_info.segment_size }}
                         </p>
-                        <p>
+                        <p class="mb-2">
+                          <i
+                            class="fas fa-money-bill-wave me-2 text-success"
+                          ></i>
                           <strong>Total Penjualan:</strong> Rp {{
                           "{:,.0f}".format(segment_info.total_sales) }}
                         </p>
-                        <p>
+                        <p class="mb-2">
+                          <i class="fas fa-calculator me-2 text-info"></i>
                           <strong>Rata-rata Penjualan:</strong> Rp {{
                           "{:,.0f}".format(segment_info.avg_sales_per_product)
                           }}
                         </p>
-                        <p>
+                        <p class="mb-2">
+                          <i class="fas fa-chart-line me-2 text-warning"></i>
                           <strong>Total Terjual:</strong> {{
                           "{:,.0f}".format(segment_info.total_quantity) }}
                         </p>
 
                         {% if segment_info.top_categories %}
-                        <p><strong>Kategori Teratas:</strong></p>
-                        <ul class="small">
+                        <p class="mb-1">
+                          <strong
+                            ><i class="fas fa-tags me-2"></i>Kategori
+                            Teratas:</strong
+                          >
+                        </p>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
                           {% for category, count in
                           segment_info.top_categories.items() %}
-                          <li>{{ category }}: {{ count }} produk</li>
+                          <span class="badge bg-secondary small"
+                            >{{ category }}: {{ count }}</span
+                          >
                           {% endfor %}
-                        </ul>
+                        </div>
                         {% endif %} {% if segment_info.recommendations %}
-                        <h6>Rekomendasi:</h6>
-                        <ul class="small">
-                          {% for rec in segment_info.recommendations %}
-                          <li>{{ rec }}</li>
-                          {% endfor %}
-                        </ul>
+                        <div class="mt-3">
+                          <h6>
+                            <i class="fas fa-lightbulb me-2 text-warning"></i
+                            >Rekomendasi:
+                          </h6>
+                          <ul class="small mb-0">
+                            {% for rec in segment_info.recommendations %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                          </ul>
+                        </div>
                         {% endif %}
                       </div>
                     </div>
@@ -324,8 +377,8 @@ endblock %} {% block content %}
         <div class="card">
           <div class="card-header">
             <h4>
-              <i class="fas fa-table"></i> Data Produk ({{ total_products }}
-              produk)
+              <i class="fas fa-table me-2"></i> Data Produk
+              <span class="badge bg-primary">{{ total_products }} produk</span>
             </h4>
           </div>
           <div class="card-body">
@@ -345,12 +398,12 @@ endblock %} {% block content %}
                 <tbody>
                   {% for product in data.to_dict('records') %}
                   <tr>
-                    <td>{{ product.produk }}</td>
+                    <td><strong>{{ product.produk }}</strong></td>
                     <td>
                       {{ "{:,.0f}".format(product.jumlah_terjual) if
                       product.jumlah_terjual else '-' }}
                     </td>
-                    <td class="text-success">
+                    <td class="text-success fw-bold">
                       Rp {{ "{:,.0f}".format(product.penjualan_rp) if
                       product.penjualan_rp else '-' }}
                     </td>
@@ -362,6 +415,7 @@ endblock %} {% block content %}
                     {% if clustering_results and clustering_results.success %}
                     <td>
                       <span class="badge bg-primary">
+                        <i class="fas fa-shapes me-1"></i>
                         Segment {{
                         clustering_results.clustering_results.labels[loop.index0]
                         }}
@@ -379,4 +433,31 @@ endblock %} {% block content %}
     </div>
   </div>
 </div>
+{% endblock %} {% block scripts %}
+<script>
+  // Additional dashboard-specific animations
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add pulse animation to important numbers
+    const importantNumbers = document.querySelectorAll(".summary-card h3");
+    importantNumbers.forEach((number) => {
+      setInterval(() => {
+        number.style.transform = "scale(1.1)";
+        setTimeout(() => {
+          number.style.transform = "scale(1)";
+        }, 500);
+      }, 3000);
+    });
+
+    // Add click animation to cards
+    const cards = document.querySelectorAll(".card");
+    cards.forEach((card) => {
+      card.addEventListener("click", function () {
+        this.style.transform = "scale(0.98)";
+        setTimeout(() => {
+          this.style.transform = "";
+        }, 150);
+      });
+    });
+  });
+</script>
 {% endblock %}
