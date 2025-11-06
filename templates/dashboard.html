@@ -149,6 +149,158 @@ Transaksi{% endblock %} {% block content %}
     </div>
     {% endif %}
 
+    <!-- ANALISIS MENU FAVORIT - BAGIAN BARU -->
+    {% if favorite_menus and favorite_menus.success %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-warning text-dark">
+            <h4><i class="fas fa-star me-2"></i> Analisis Menu Favorit</h4>
+            <small class="text-muted">
+              {% if favorite_menus.method == 'absolute_quantity' %} Berdasarkan
+              Jumlah Transaksi Langsung {% elif favorite_menus.method ==
+              'percentage_based' %} Berdasarkan Persentase Transaksi {% elif
+              favorite_menus.method == 'estimated_from_sales' %} Estimasi dari
+              Nilai Penjualan Relatif {% endif %} {% if favorite_menus.note %} -
+              {{ favorite_menus.note }}{% endif %}
+            </small>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <!-- Chart Menu Favorit -->
+              {% if analysis_results.visualizations and
+              analysis_results.visualizations.favorite_menus %}
+              <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                  <h5>
+                    <i class="fas fa-chart-bar me-2 text-warning"></i> Grafik
+                    Menu Favorit
+                  </h5>
+                  <img
+                    src="{{ analysis_results.visualizations.favorite_menus }}"
+                    class="chart-img"
+                    alt="Favorite Menus Chart"
+                  />
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Detail Menu Favorit -->
+              <div class="col-md-6">
+                <h5>
+                  <i class="fas fa-trophy me-2 text-warning"></i> Top 10 Menu
+                  Favorit
+                </h5>
+                <div class="list-group">
+                  {% for menu in favorite_menus.favorite_menus %}
+                  <div
+                    class="list-group-item {% if loop.index <= 3 %}border-warning{% endif %}"
+                  >
+                    <div
+                      class="d-flex w-100 justify-content-between align-items-start"
+                    >
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                          <span
+                            class="badge {% if loop.index == 1 %}bg-warning text-dark {% elif loop.index == 2 %}bg-secondary {% elif loop.index == 3 %}bg-danger {% else %}bg-primary{% endif %} me-2"
+                          >
+                            #{{ loop.index }}
+                          </span>
+                          <h6 class="mb-0">{{ menu.produk }}</h6>
+                        </div>
+
+                        <div class="row small">
+                          {% if menu.jumlah_transaksi %}
+                          <div class="col-6">
+                            <i
+                              class="fas fa-shopping-cart me-1 text-primary"
+                            ></i>
+                            <strong>Transaksi:</strong> {{
+                            "{:,}".format(menu.jumlah_transaksi) }}
+                          </div>
+                          {% elif menu.persentase_transaksi %}
+                          <div class="col-6">
+                            <i class="fas fa-percentage me-1 text-info"></i>
+                            <strong>Persentase:</strong> {{
+                            menu.persentase_transaksi }}%
+                          </div>
+                          {% elif menu.estimated_frequency %}
+                          <div class="col-6">
+                            <i class="fas fa-chart-line me-1 text-success"></i>
+                            <strong>Estimasi:</strong> {{
+                            menu.estimated_frequency }}%
+                          </div>
+                          {% endif %}
+
+                          <div class="col-6">
+                            <i
+                              class="fas fa-money-bill-wave me-1 text-success"
+                            ></i>
+                            <strong>Penjualan:</strong> Rp{{
+                            "{:,.0f}".format(menu.penjualan_rp) }}
+                          </div>
+                        </div>
+
+                        <div class="mt-2">
+                          <span class="badge bg-dark">
+                            <i class="fas fa-tag me-1"></i>{{ menu.kategori }}
+                          </span>
+                          {% if menu.ranking_method %}
+                          <small class="text-muted ms-2">
+                            <i class="fas fa-info-circle me-1"></i>{{
+                            menu.ranking_method }}
+                          </small>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistik Tambahan Menu Favorit -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="alert alert-info">
+                  <h6>
+                    <i class="fas fa-chart-pie me-2"></i>Statistik Menu Favorit
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <strong>Total Dianalisis:</strong> {{
+                      favorite_menus.total_analyzed }} menu
+                    </div>
+                    <div class="col-md-3">
+                      <strong>Metode:</strong>
+                      {% if favorite_menus.method == 'absolute_quantity'
+                      %}Jumlah Transaksi {% elif favorite_menus.method ==
+                      'percentage_based' %}Persentase Transaksi {% elif
+                      favorite_menus.method == 'estimated_from_sales' %}Estimasi
+                      Penjualan {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                      <strong>Menu Teratas:</strong> {{
+                      favorite_menus.favorite_menus[0].produk[:30] }}{% if
+                      favorite_menus.favorite_menus[0].produk|length > 30
+                      %}...{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% elif favorite_menus and not favorite_menus.success %}
+    <div class="alert alert-warning mb-4">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      Analisis menu favorit tidak berhasil: {{ favorite_menus.error }}
+    </div>
+    {% endif %}
+
     <!-- Analisis Penjualan -->
     {% if analysis_results and analysis_results.success %}
     <div class="row mb-4">
@@ -458,6 +610,45 @@ Transaksi{% endblock %} {% block content %}
         }, 150);
       });
     });
+
+    // Highlight favorite menu items
+    const favoriteItems = document.querySelectorAll(
+      ".list-group-item.border-warning"
+    );
+    favoriteItems.forEach((item, index) => {
+      if (index === 0) {
+        item.style.background =
+          "linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)";
+      } else if (index === 1) {
+        item.style.background =
+          "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)";
+      } else if (index === 2) {
+        item.style.background =
+          "linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)";
+      }
+    });
   });
 </script>
+
+<style>
+  .list-group-item.border-warning {
+    border-left: 4px solid #ffc107 !important;
+    border-top: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .chart-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .chart-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+</style>
 {% endblock %}

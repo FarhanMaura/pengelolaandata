@@ -196,11 +196,15 @@ def dashboard():
 
     data_history_with_index = [{'index': i, 'data': d} for i, d in enumerate(data_history)]
 
+    # Ambil analisis menu favorit
+    favorite_menus = current_data['analysis_results'].get('favorite_menus', {}) if current_data['analysis_results'] else {}
+
     return render_template(
         'dashboard.html',
         data=current_data['data'],
         clustering_results=current_data['clustering_results'],
         analysis_results=current_data['analysis_results'],
+        favorite_menus=favorite_menus,  # TAMBAHAN BARU
         data_history=data_history,
         data_history_with_index=data_history_with_index,
         current_dataset_index=current_dataset_index,

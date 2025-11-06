@@ -33,7 +33,7 @@ class PDFProcessor:
             df = pd.DataFrame(all_products)
             df = self._final_validation(df, extracted_total)
         else:
-            df = pd.DataFrame(columns=["produk", "jumlah_terjual", "penjualan_rp", "kategori", "tanggal"])
+            df = pd.DataFrame(columns=["produk", "jumlah_terjual", "persentase_terjual", "penjualan_rp", "kategori", "tanggal"])
 
         df.to_csv(csv_path, index=False)
         return df
@@ -55,7 +55,7 @@ class PDFProcessor:
         return products
 
     def _extract_product_from_line(self, line: str, products: List[Dict]) -> Optional[Dict]:
-        """Ekstrak 1 produk dari 1 baris"""
+        """Ekstrak 1 produk dari 1 baris - DIMODIFIKASI"""
         try:
             if "Rp" not in line:
                 return None
@@ -79,16 +79,20 @@ class PDFProcessor:
             # Ambil quantity (cari pola angka dengan titik/koma)
             quantity = self._safe_find_quantity(parts)
 
+            # Ambil persentase terjual jika ada - TAMBAHAN BARU
+            sold_percentage = self._extract_sold_percentage(parts)
+
             # Ambil nilai penjualan
             sales_amount = self._extract_sales_amount(parts)
 
             if product_name and sales_amount > 0:
                 category = self._determine_category_smart(product_name)
-                print(f"✓ {product_name[:30]:30} | Qty: {quantity:6,.0f} | Sales: Rp{sales_amount:12,.0f}")
+                print(f"✓ {product_name[:30]:30} | Qty: {quantity:6,.0f} | %: {sold_percentage:5.1f}% | Sales: Rp{sales_amount:12,.0f}")
 
                 return {
                     "produk": product_name,
                     "jumlah_terjual": quantity,
+                    "persentase_terjual": sold_percentage,  # TAMBAHAN BARU
                     "penjualan_rp": sales_amount,
                     "kategori": category,
                     "tanggal": datetime.now().date(),
@@ -98,6 +102,19 @@ class PDFProcessor:
             print(f"✗ Error parsing line: {e}")
             print(f"  -> {line}")
         return None
+
+    def _extract_sold_percentage(self, parts: List[str]) -> float:
+        """Ekstrak persentase terjual dari parts - FUNGSI BARU"""
+        for part in parts:
+            # Cari pattern persentase seperti "15.00%"
+            if part.endswith('%') and not part.startswith('Rp'):
+                try:
+                    # Hilangkan % dan konversi ke float
+                    clean_part = part.replace('%', '').replace(',', '.')
+                    return float(clean_part)
+                except ValueError:
+                    continue
+        return 0.0
 
     def _safe_find_quantity(self, parts: List[str]) -> float:
         """Cari quantity dengan regex yang aman"""
